@@ -13,6 +13,10 @@ derivative (p:ps) = (fromIntegral (length ps) * p) : derivative ps
 
 -- Evaluates polynomial at complex point x
 -- Uses Horner's method for numerical stability
+-- iterate generates: [1, x, x², x³, ...]
+-- reverpse p [1,2,3] -> reverse p [3,2,1]
+-- zipWith applay function on two arrays
+-- map (:+0) p convert to complex numbers
 polyval :: [Double] -> Complex Double -> Complex Double
 polyval p x = sum $ zipWith (*) (map (:+ 0) (reverse p)) (iterate (*x) (1 :+ 0))
 
@@ -76,7 +80,7 @@ main = do
     start <- getCurrentTime
     let dp = derivative p
     let roots = initRoots p
-    let abertErlichRoots = abertErlich p dp roots 1e-4 850
+    let abertErlichRoots = abertErlich p dp roots 1e-4 800
     putStrLn "Found roots:"
     mapM_ (\root -> printf "%.3f%+.3fj\n" (realPart root) (imagPart root)) abertErlichRoots
     end <- getCurrentTime
