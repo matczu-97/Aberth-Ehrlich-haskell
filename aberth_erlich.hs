@@ -80,7 +80,7 @@ main = do
     start <- getCurrentTime
     let dp = derivative p
     let roots = initRoots p
-    let abertErlichRoots = abertErlich p dp roots 1e-4 800
+    let abertErlichRoots = abertErlich p dp roots 1e-3 100
     putStrLn "Found roots:"
     mapM_ (\root -> printf "%.3f%+.3fj\n" (realPart root) (imagPart root)) abertErlichRoots
     end <- getCurrentTime
