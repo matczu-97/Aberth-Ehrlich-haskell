@@ -82,7 +82,7 @@ main = do
     let roots = initRoots p
     let abertErlichRoots = abertErlich p dp roots 1e-3 100
     putStrLn "Found roots:"
-    mapM_ (\root -> printf "%.3f%+.3fj\n" (realPart root) (imagPart root)) abertErlichRoots
+    mapM_ print abertErlichRoots
     end <- getCurrentTime
     let duration = diffUTCTime end start
     putStrLn( "The operation took: " ++ show duration ++ " seconds" )
