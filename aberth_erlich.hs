@@ -1,8 +1,8 @@
 import Data.Complex
+import Data.List (sortBy)
 import Text.Printf
 import Data.Time.Clock
 import Debug.Trace (trace)
-
 -- Calculates derivative coefficients of a polynomial
 -- Input: List of coefficients [a_n, a_{n-1}, ..., a_1, a_0]
 -- Output: List of derivative coefficients [na_n, (n-1)a_{n-1}, ..., a_1]
@@ -42,7 +42,7 @@ eulerEquation r theta =
 initRoots :: [Double] -> [Complex Double]
 initRoots p = [ eulerEquation r  (2 * pi * fromIntegral k / fromIntegral n) | k <- [0..n-2] ]
   where
-    r = 1 + maximum (map abs (drop 1 p)) / (abs (head p) + 1e-10)
+    r = (1 + maximum (map abs (drop 1 p)) / (abs (head p))) / 2
     n = length p
 
 -- Calculates correction terms for Aberth-Ehrlich iteration
@@ -59,20 +59,27 @@ abertErlich :: [Double] -> [Double] -> [Complex Double] -> Double -> Int -> [Com
 abertErlich p pTag roots epsilon maxTries = go roots 0
  where
    go currentRoots tries
-     | debugMsg < epsilon || tries >= maxTries = newRoots           -- Convergence check
+     | maxW < epsilon || tries >= maxTries = newRoots           -- Convergence check
      | otherwise = go newRoots (tries + 1)                      -- Continue iteration
      where
        w = getOffsets p pTag currentRoots
        newRoots = zipWith (-) currentRoots w                    -- Update approximations
        maxW = maximum $ map magnitude w
-       debugMsg = trace ("maxW: " ++ show maxW) maxW
-
-
+       
+       
 readFileToList :: FilePath -> IO [Double]
 readFileToList filePath = do
     contents <- readFile filePath
     let numbers = map read (lines contents) :: [Double]
     return numbers
+
+sortByRealThenImag :: [Complex Double] -> [Complex Double]
+sortByRealThenImag = sortBy compareComplex
+  where
+    compareComplex a b = case compare (realPart a) (realPart b) of
+        EQ -> compare (imagPart a) (imagPart b)
+        other -> other
+
 
 main :: IO ()
 main = do
@@ -80,9 +87,9 @@ main = do
     start <- getCurrentTime
     let dp = derivative p
     let roots = initRoots p
-    let abertErlichRoots = abertErlich p dp roots 1e-3 100
+    let abertErlichRoots = abertErlich p dp roots 1e-6 600
+    mapM_ print (sortByRealThenImag abertErlichRoots)
     putStrLn "Found roots:"
-    mapM_ print abertErlichRoots
     end <- getCurrentTime
     let duration = diffUTCTime end start
     putStrLn( "The operation took: " ++ show duration ++ " seconds" )
